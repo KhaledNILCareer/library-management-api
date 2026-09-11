@@ -1,0 +1,160 @@
+/api/authors:
+  get:
+    tags:
+      - Authors
+    summary: Get all authors
+    description: Retrieve a list of all authors.
+    responses:
+      "200":
+        description: Authors retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorsResponse"
+
+  post:
+    tags:
+      - Authors
+    summary: Create a new author
+    description: Create a new author with a name and optional biography.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                example: George Orwell
+              biography:
+                type: string
+                example: English novelist and essayist.
+    responses:
+      "201":
+        description: Author created successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorResponse"
+
+      "400":
+        description: Invalid author data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+
+/api/authors/{id}:
+  get:
+    tags:
+      - Authors
+    summary: Get author by ID
+    description: Retrieve a specific author by their ID.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Author ID
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Author retrieved successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorResponse"
+
+      "404":
+        description: Author not found
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+
+  patch:
+    tags:
+      - Authors
+    summary: Update an author
+    description: Update one or more fields of an existing author.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Author ID
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: George Orwell
+              biography:
+                type: string
+                example: Updated author biography.
+    responses:
+      "200":
+        description: Author updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorResponse"
+
+      "400":
+        description: Invalid author data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+      "404":
+        description: Author not found
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+
+  delete:
+    tags:
+      - Authors
+    summary: Delete an author
+    description: Delete an author if they are not linked to any books.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: Author ID
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Author deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthorResponse"
+
+      "404":
+        description: Author not found
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+      "409":
+        description: Author cannot be deleted because they are linked to books
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"

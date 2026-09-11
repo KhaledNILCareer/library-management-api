@@ -1,5 +1,8 @@
 import express from "express";
 
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from './config/swagger.js';
+
 import authRoutes from "./modules/auth/auth.routes.js";
 import authorRoutes from "./modules/authors/author.routes.js";
 import bookRoutes from "./modules/books/book.routes.js";
@@ -25,6 +28,9 @@ app.use("/api/authors", authorRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/borrows", borrowRoutes);
 app.use("/api/ai", aiRoutes);
+
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(notFound);
 app.use(errorHandler);
