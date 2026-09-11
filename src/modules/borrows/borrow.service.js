@@ -38,7 +38,7 @@ export const borrowBook = async (userId, bookId) => {
   const updatedBook = await Book.findOneAndUpdate(
     { _id: bookId, availableCopies: { $gt: 0 } },
     { $inc: { availableCopies: -1 } },
-    { new: true }
+    { returnDocument: "after" }
   );
   if (!updatedBook) {
     throw httpError(409, "No available book copies");
