@@ -13,9 +13,38 @@ export const createAuthor = async (req, res, next) => {
         "data": author
       }
     );
-  } catch (err) {
-    next(err);
-  }
+  } catch (err) { next(err); }
 };
 
+export const getAuthors = async (req, res, next) => {
+  try {
 
+    const authors = await Author.find();
+    res.status(200).json(
+      {
+        "message": "Authors retrieved successfully",
+        "data": authors
+      }
+    );
+  } catch (err) { next(err) }
+};
+
+export const getAuthorById = async (req, res, next) => {
+  try {
+    const author = await Author.findById(req.params.id);
+
+    if (!author) {
+      return res.status(404).json({
+        message: "Author not found",
+      });
+    }
+
+    res.status(200).json(
+      {
+        "message": "Author retrieved successfully",
+        "data": author
+      }
+    );
+    
+  } catch (err) { next(err) }
+};
