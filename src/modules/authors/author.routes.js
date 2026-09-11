@@ -4,14 +4,36 @@ import {
   getAuthors, 
   updateAuthor,
   getAuthorById,
-  deleteAuthor } from "./author.controller.js";
+  deleteAuthor
+} from "./author.controller.js";
+
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { authorizeRole } from "../../middlewares/role.middleware.js";
 
 const router = Router();
 
-router.post("/", createAuthor);
-router.get("/", getAuthors);
-router.get("/:id", getAuthorById);
-router.patch("/:id", updateAuthor);
-router.delete("/:id", deleteAuthor);
+router.get("/", authenticate, getAuthors);
+router.get("/:id", authenticate, getAuthorById);
+
+router.post(
+  "/",
+  authenticate,
+  authorizeRole("admin", "librarian"),
+  createAuthor
+);
+
+router.patch(
+  "/:id",
+  authenticate,
+  authorizeRole("admin", "librarian"),
+  updateAuthor
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  authorizeRole("admin", "librarian"),
+  deleteAuthor
+);
 
 export default router;
