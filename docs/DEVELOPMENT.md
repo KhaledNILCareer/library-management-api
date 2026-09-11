@@ -519,3 +519,307 @@ A logout endpoint is required, but the specification does not require a particul
 ### Librarian Borrowing Workflow
 
 Librarians must be able to manage borrowing and returning. Exact behavior for acting on behalf of members should be confirmed during borrowing implementation.
+
+## 16. Implementation Map and Dependencies
+
+The project is designed so multiple modules can be developed in parallel, but some features depend on others being available first.
+
+### Team Ownership
+
+| Team Member | Primary Responsibility | Jira Tickets |
+|---|---|---|
+| Khaled | Team Lead, Integration, Testing, Documentation, Delivery | SCRUM-19, SCRUM-20, SCRUM-44–48 |
+| Abdallah | Authentication and Users | SCRUM-21–27 |
+| Ahmed | Books | SCRUM-28–32 |
+| Mohanad | Authors and Gemini | SCRUM-33–36, SCRUM-42–43 |
+| Amr | Borrowing | SCRUM-37–41 |
+
+Ownership identifies the primary developer for each area. It does not prevent collaboration when integration between modules is required.
+
+---
+
+### High-Level Dependency Map
+
+```text
+                    PROJECT FOUNDATION
+                  SCRUM-19 / SCRUM-20
+                         DONE
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+    AUTH / USERS        AUTHORS          GEMINI
+     Abdallah           Mohanad          Mohanad
+    SCRUM-21–27       SCRUM-33–36      SCRUM-42–43
+          │                │
+          │                │ Author
+          │                ▼
+          │              BOOKS
+          │              Ahmed
+          │           SCRUM-28–32
+          │                │
+          │ Auth/User      │ Book
+          └────────┬───────┘
+                   ▼
+               BORROWING
+                  Amr
+              SCRUM-37–41
+                   │
+                   ▼
+          INTEGRATION / DELIVERY
+                 Khaled
+              SCRUM-44–48
+```
+
+---
+
+### Parallel Development
+
+The following work can begin in parallel:
+
+```text
+Abdallah ─── Authentication / Users ──────────────────┐
+                                                      │
+Mohanad ───── Authors ────────────────► Gemini         │
+                 │                                    │
+Ahmed ─────── Book model / read work ◄─┘               │
+                                                      │
+Amr ───────── Borrow model / rules                     │
+                       ▲                              │
+                       └──── Auth + Books ─────────────┘
+                                                      │
+Khaled ─────── PR Review / Integration / Postman ──────┘
+```
+
+Parallel work should not introduce temporary or duplicate implementations of another developer's module simply to bypass a dependency.
+
+If required functionality is not available yet, coordinate with the owner or work on the parts of the ticket that are not blocked.
+
+---
+
+### Authentication and Users
+
+Primary owner: **Abdallah**
+
+Recommended implementation order:
+
+```text
+SCRUM-21 Registration
+        │
+        ▼
+SCRUM-22 Login
+        │
+        ▼
+SCRUM-25 Authentication Middleware
+        │
+        ▼
+SCRUM-26 Authorization
+        │
+        ├────────► SCRUM-24 Current User
+        ├────────► SCRUM-23 Logout
+        └────────► SCRUM-27 Admin User Management
+```
+
+Authentication is a critical dependency for protected operations, especially Borrowing.
+
+Merge useful foundations early rather than waiting for the entire Auth module to be completed.
+
+---
+
+### Authors
+
+Primary owner: **Mohanad**
+
+Recommended implementation order:
+
+```text
+SCRUM-33 Create Author
+        │
+        ▼
+SCRUM-34 View Authors
+        │
+        ▼
+SCRUM-35 Update Author
+        │
+        ▼
+SCRUM-36 Delete Author
+```
+
+The Author model is an important dependency for Books because:
+
+```text
+Book.author → Author._id
+```
+
+The Author foundation should therefore be merged early.
+
+---
+
+### Books
+
+Primary owner: **Ahmed**
+
+Books depend on the Author model.
+
+While waiting for the Author foundation, work can begin on Book model design and functionality that does not require a completed Author workflow.
+
+Recommended flow:
+
+```text
+Book model / read preparation
+        │
+        ├────► SCRUM-29 View Books
+        └────► SCRUM-30 View Book Details
+
+Author foundation merged
+        │
+        ▼
+SCRUM-28 Create Book
+        │
+        ▼
+SCRUM-31 Update Book
+        │
+        ▼
+SCRUM-32 Delete Book
+```
+
+Do not create a separate or temporary Author implementation inside the Books module.
+
+---
+
+### Borrowing
+
+Primary owner: **Amr**
+
+Borrowing has the most cross-module dependencies.
+
+```text
+User/Auth ─────┐
+               │
+Book ──────────┼────► Borrow
+               │
+Borrow Model ──┘
+```
+
+Before Auth and Books are ready, work can begin on:
+
+- Borrow model design
+- Borrow statuses
+- Date rules
+- Edge-case analysis
+- SCRUM-41 business-rule preparation
+
+Once the required Auth and Book foundations are merged:
+
+```text
+SCRUM-37 Borrow Book
+        │
+        ▼
+SCRUM-38 Return Book
+        │
+        ├────► SCRUM-39 Member Borrowing History
+        ├────► SCRUM-40 Borrowing Records
+        └────► SCRUM-41 Final Rules / Edge Cases
+```
+
+Do not create fake User or Book implementations to bypass dependencies.
+
+---
+
+### Gemini
+
+Primary owner: **Mohanad**
+
+After the Authors foundation is stable, Gemini can be developed largely independently:
+
+```text
+SCRUM-42 Gemini Book Summarization
+        │
+        ▼
+SCRUM-43 Gemini Validation and Failures
+```
+
+Gemini work must not block the core library functionality.
+
+---
+
+### Integration and Delivery
+
+Primary owner: **Khaled**
+
+Integration and documentation should happen continuously rather than waiting until all feature development is complete.
+
+```text
+Feature PR
+    │
+    ▼
+Code Review
+    │
+    ▼
+Merge to main
+    │
+    ├────► Integration Test
+    ├────► Postman Collection Update
+    ├────► API Documentation Update
+    └────► README Update when needed
+```
+
+SCRUM-44–47 can therefore progress alongside feature development.
+
+The final demonstration and final project verification happen after the required functionality is integrated.
+
+---
+
+### Critical Paths
+
+Two important dependency chains must be kept moving.
+
+#### Book / Borrowing Path
+
+```text
+Authors
+   │
+   ▼
+Books
+   │
+   ▼
+Borrowing
+```
+
+#### Authentication / Borrowing Path
+
+```text
+Registration
+    │
+    ▼
+Login
+    │
+    ▼
+Authentication Middleware
+    │
+    ▼
+Authorization
+    │
+    ▼
+Borrowing
+```
+
+PRs that unblock these paths should receive high review priority.
+
+---
+
+### Working With Dependencies
+
+Before starting a ticket:
+
+1. Pull the latest `main`.
+2. Check whether the ticket depends on another module.
+3. If the dependency is already merged, use the implementation from `main`.
+4. If it is not merged, work only on the unblocked parts where practical.
+5. Do not duplicate another module's implementation.
+6. Coordinate with the dependency owner when an interface or behavior is unclear.
+7. Open small PRs when useful foundations can unblock another developer.
+
+The goal is not for every developer to finish their entire module independently.
+
+The goal is to continuously integrate stable pieces so that the whole API progresses together.
