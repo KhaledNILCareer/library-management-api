@@ -32,7 +32,7 @@ export const register = async (req, res, next) => {
         }
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            return next(new ApiError('User already exists', 400));
+            return next(new ApiError('User already exists', 409));
         }
         const user = await User.create({ name, email, password });
         user.password = undefined;
@@ -53,7 +53,9 @@ export const getMe = async (req, res, next) => {
 
 export const logout = async (req, res, next) => {
     try {
-        res.status(200).json({ message: 'Logged out successfully' });
+        res.status(200).json({
+            message: 'Logged out successfully'
+        });
     } catch (err) {
         next(err);
     }

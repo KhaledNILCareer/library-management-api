@@ -5,7 +5,7 @@ import { ApiError } from "../utils/appError.util.js";
 export const authenticate = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
-        if (!authHeader?.startsWith('Bearer')) {
+        if (!authHeader?.startsWith('Bearer ')) {
             return next(new ApiError('You are not authorized', 401));
         }
         const token = authHeader.split(' ')[1];
