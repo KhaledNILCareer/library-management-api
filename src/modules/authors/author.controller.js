@@ -1,4 +1,5 @@
 import Author from './author.model.js';
+import Book from "../books/book.model.js";
 
 export const createAuthor = async (req, res, next) => {
   try {
@@ -71,4 +72,35 @@ export const updateAuthor = async (req, res, next) => {
     );
     
   } catch (err) { next(err) }
+};
+
+export const deleteAuthor = async (req, res, next) => {
+  try {
+    const author = await Author.findById(req.params.id);
+
+    if (!author) {
+      return res.status(404).json({
+        message: "Author not found",
+      });
+    }
+
+    const linkedBook = await Book.findOne({
+      author: req.params.id,
+    });
+
+    if (linkedBook) {
+      return res.status(409).json({
+        message: "Cannot delete author linked to books",
+      });
+    }
+
+    await author.deleteOne();
+
+    res.status(200).json({
+      message: "Author deleted successfully",
+      data: author,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
