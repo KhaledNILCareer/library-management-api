@@ -1,33 +1,31 @@
-import Author from './author.model.js';
-import Book from "../books/book.model.js";
+// import Book from "../books/book.model.js";
+import Author from "./author.model.js";
 
 export const createAuthor = async (req, res, next) => {
   try {
     const { name, biography } = req.body;
 
     const author = await Author.create({ name, biography });
-    
 
-    res.status(201).json(
-      {
-        "message": "Author created successfully",
-        "data": author
-      }
-    );
-  } catch (err) { next(err); }
+    res.status(201).json({
+      message: "Author created successfully",
+      data: author,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const getAuthors = async (req, res, next) => {
   try {
-
     const authors = await Author.find();
-    res.status(200).json(
-      {
-        "message": "Authors retrieved successfully",
-        "data": authors
-      }
-    );
-  } catch (err) { next(err) }
+    res.status(200).json({
+      message: "Authors retrieved successfully",
+      data: authors,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const getAuthorById = async (req, res, next) => {
@@ -40,14 +38,13 @@ export const getAuthorById = async (req, res, next) => {
       });
     }
 
-    res.status(200).json(
-      {
-        "message": "Author retrieved successfully",
-        "data": author
-      }
-    );
-    
-  } catch (err) { next(err) }
+    res.status(200).json({
+      message: "Author retrieved successfully",
+      data: author,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const updateAuthor = async (req, res, next) => {
@@ -55,7 +52,7 @@ export const updateAuthor = async (req, res, next) => {
     const updatedAuthor = await Author.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: "after", runValidators: true },
     );
 
     if (!updatedAuthor) {
@@ -64,14 +61,13 @@ export const updateAuthor = async (req, res, next) => {
       });
     }
 
-    res.status(200).json(
-      {
-        "message": "Author updated successfully",
-        "data": updatedAuthor
-      }
-    );
-    
-  } catch (err) { next(err) }
+    res.status(200).json({
+      message: "Author updated successfully",
+      data: updatedAuthor,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
 
 export const deleteAuthor = async (req, res, next) => {
@@ -84,15 +80,15 @@ export const deleteAuthor = async (req, res, next) => {
       });
     }
 
-    const linkedBook = await Book.findOne({
-      author: req.params.id,
-    });
+    // const linkedBook = await Book.findOne({
+    //   author: req.params.id,
+    // });
 
-    if (linkedBook) {
-      return res.status(409).json({
-        message: "Cannot delete author linked to books",
-      });
-    }
+    // if (linkedBook) {
+    //   return res.status(409).json({
+    //     message: "Cannot delete author linked to books",
+    //   });
+    // }
 
     await author.deleteOne();
 

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 
 import authRoutes from "./modules/auth/auth.routes.js";
@@ -19,7 +20,6 @@ app.get("/", (req, res) => {
     message: "Library Management API is running",
   });
 });
-
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
