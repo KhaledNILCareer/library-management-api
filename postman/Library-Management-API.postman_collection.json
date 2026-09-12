@@ -4,7 +4,8 @@
     "name": "Library Management API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "58037190",
-    "_collection_link": "https://go.postman.co/collection/58037190-6df5c9cc-eeae-4658-96e2-4f3c7d656692?source=collection_link"
+    "_collection_link": "https://go.postman.co/collection/58037190-6df5c9cc-eeae-4658-96e2-4f3c7d656692?source=collection_link",
+    "description": "Final integration Postman collection for the Library Management API. Select the 'Library API - Local' environment before running. Runtime IDs/tokens are stored in environment variables."
   },
   "item": [
     {
@@ -54,7 +55,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"Postman\",\r\n  \"email\": \"x@example.com\",\r\n  \"password\": \"123456\"\r\n}",
+              "raw": "{\n  \"name\": \"Demo Member\",\n  \"email\": \"{{demoMemberEmail}}\",\n  \"password\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -76,13 +77,39 @@
           "response": [],
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const email = `demo.member.${Date.now()}@example.com`;",
+                  "pm.environment.set(\"demoMemberEmail\", email);"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
+                  "const json = pm.response.json();",
+                  "",
                   "pm.test(\"Status code is 201\", function () {",
                   "  pm.response.to.have.status(201);",
-                  "});"
+                  "});",
+                  "",
+                  "pm.test(\"Registered user returned\", function () {",
+                  "  pm.expect(json).to.have.property(\"user\");",
+                  "  pm.expect(json.user).to.have.property(\"_id\");",
+                  "  pm.expect(json.user).to.have.property(\"email\");",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && json.user?._id) {",
+                  "  pm.environment.set(\"userId\", json.user._id);",
+                  "}",
+                  "",
+                  "if (pm.response.code === 201 && json.token) {",
+                  "  pm.environment.set(\"memberToken\", json.token);",
+                  "}"
                 ]
               }
             }
@@ -99,8 +126,14 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "  pm.response.to.have.status(200);",
                   "});",
+                  "",
                   "const json = pm.response.json();",
-                  "if (json.token) pm.collectionVariables.set(\"adminToken\", json.token);"
+                  "",
+                  "pm.test(\"Login returned token\", function () {",
+                  "  pm.expect(json).to.have.property(\"token\");",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 && json.token) pm.environment.set(\"adminToken\", json.token);"
                 ]
               }
             }
@@ -142,8 +175,14 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "  pm.response.to.have.status(200);",
                   "});",
+                  "",
                   "const json = pm.response.json();",
-                  "if (json.token) pm.collectionVariables.set(\"librarianToken\", json.token);"
+                  "",
+                  "pm.test(\"Login returned token\", function () {",
+                  "  pm.expect(json).to.have.property(\"token\");",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 && json.token) pm.environment.set(\"librarianToken\", json.token);"
                 ]
               }
             }
@@ -185,8 +224,14 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "  pm.response.to.have.status(200);",
                   "});",
+                  "",
                   "const json = pm.response.json();",
-                  "if (json.token) pm.collectionVariables.set(\"memberToken\", json.token);"
+                  "",
+                  "pm.test(\"Login returned token\", function () {",
+                  "  pm.expect(json).to.have.property(\"token\");",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200 && json.token) pm.environment.set(\"memberToken\", json.token);"
                 ]
               }
             }
@@ -196,7 +241,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"email\": \"Postman@example.com\",\r\n  \"password\": \"123456\"\r\n}",
+              "raw": "{\n  \"email\": \"{{demoMemberEmail}}\",\n  \"password\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -265,48 +310,6 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "Logout",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{memberToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/logout",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "logout"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
@@ -324,13 +327,12 @@
                   "pm.test(\"Status code is 200\", function () {",
                   "  pm.response.to.have.status(200);",
                   "});",
+                  "",
                   "const json = pm.response.json();",
+                  "",
                   "pm.test(\"Response contains users\", function () {",
                   "  pm.expect(json.data).to.be.an(\"array\");",
-                  "});",
-                  "if (Array.isArray(json.data) && json.data.length > 0) {",
-                  "  pm.collectionVariables.set(\"userId\", json.data[0]._id);",
-                  "}"
+                  "});"
                 ]
               }
             }
@@ -412,48 +414,6 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "Delete User",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/users/{{userId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "users",
-                "{{userId}}"
-              ]
-            }
-          },
-          "response": []
         }
       ]
     },
@@ -468,7 +428,22 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const json = pm.response.json();\r\n\r\npm.test(\"Status code is 201\", () => {\r\n  pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Response has author data\", () => {\r\n  pm.expect(json).to.have.property(\"message\");\r\n  pm.expect(json).to.have.property(\"data\");\r\n  pm.expect(json.data).to.have.property(\"_id\");\r\n  pm.expect(json.data).to.have.property(\"name\");\r\n});\r\n\r\nif (pm.response.code === 201 && json.data?._id) {\r\n  pm.collectionVariables.set(\"authorId\", json.data._id);\r\n}"
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 201\", () => {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has author data\", () => {",
+                  "  pm.expect(json).to.have.property(\"message\");",
+                  "  pm.expect(json).to.have.property(\"data\");",
+                  "  pm.expect(json.data).to.have.property(\"_id\");",
+                  "  pm.expect(json.data).to.have.property(\"name\");",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && json.data?._id) {",
+                  "  pm.environment.set(\"authorId\", json.data._id);",
+                  "}"
                 ]
               }
             }
@@ -516,7 +491,15 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {\r\n  pm.response.to.have.status(200);\r\n});\r\n\r\nconst json = pm.response.json();\r\n\r\npm.test(\"Authors returned successfully\", function () {\r\n  pm.expect(json.data).to.be.an(\"array\");\r\n});\r\n\r\nif (json.data.length > 0) {\r\n  pm.collectionVariables.set(\"authorId\", json.data[0]._id);\r\n}"
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Authors returned successfully\", function () {",
+                  "  pm.expect(json.data).to.be.an(\"array\");",
+                  "});"
                 ]
               }
             }
@@ -614,7 +597,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"biography\": \"British novelist and essayist known for his influential dystopian fiction.\"\r\n}",
+              "raw": "{\n  \"biography\": \"American novelist and fantasy author, best known for A Song of Ice and Fire.\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -644,48 +627,6 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "Delete Author",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api/authors/{{authorId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "authors",
-                "{{authorId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
         }
       ]
     },
@@ -696,11 +637,48 @@
           "name": "Create Book",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const isbn = String(Date.now());",
+                  "pm.environment.set(\"demoISBN\", isbn);"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\nconst json = pm.response.json();\r\n\r\npm.test(\"Response contains created book\", function () {\r\n    pm.expect(json).to.have.property(\"message\");\r\n    pm.expect(json).to.have.property(\"data\");\r\n\r\n    pm.expect(json.data).to.have.property(\"_id\");\r\n    pm.expect(json.data).to.have.property(\"title\");\r\n    pm.expect(json.data).to.have.property(\"description\");\r\n    pm.expect(json.data).to.have.property(\"ISBN\");\r\n    pm.expect(json.data).to.have.property(\"author\");\r\n    pm.expect(json.data).to.have.property(\"category\");\r\n    pm.expect(json.data).to.have.property(\"totalCopies\");\r\n    pm.expect(json.data).to.have.property(\"availableCopies\");\r\n});\r\n\r\npm.test(\"Copy counts are valid\", function () {\r\n    pm.expect(json.data.totalCopies).to.be.at.least(0);\r\n    pm.expect(json.data.availableCopies).to.be.at.least(0);\r\n    pm.expect(json.data.availableCopies)\r\n        .to.be.at.most(json.data.totalCopies);\r\n});\r\n\r\nif (json.data?._id) {\r\n    pm.collectionVariables.set(\"bookId\", json.data._id);\r\n}"
+                  "pm.test(\"Status code is 201\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Response contains created book\", function () {",
+                  "  pm.expect(json).to.have.property(\"message\");",
+                  "  pm.expect(json).to.have.property(\"data\");",
+                  "  pm.expect(json.data).to.have.property(\"_id\");",
+                  "  pm.expect(json.data).to.have.property(\"title\");",
+                  "  pm.expect(json.data).to.have.property(\"description\");",
+                  "  pm.expect(json.data).to.have.property(\"ISBN\");",
+                  "  pm.expect(json.data).to.have.property(\"author\");",
+                  "  pm.expect(json.data).to.have.property(\"category\");",
+                  "  pm.expect(json.data).to.have.property(\"totalCopies\");",
+                  "  pm.expect(json.data).to.have.property(\"availableCopies\");",
+                  "});",
+                  "",
+                  "pm.test(\"Copy counts are valid\", function () {",
+                  "  pm.expect(json.data.totalCopies).to.be.at.least(0);",
+                  "  pm.expect(json.data.availableCopies).to.be.at.least(0);",
+                  "  pm.expect(json.data.availableCopies).to.be.at.most(json.data.totalCopies);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && json.data?._id) {",
+                  "  pm.environment.set(\"bookId\", json.data._id);",
+                  "}"
                 ]
               }
             }
@@ -720,7 +698,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"title\": \"Delete Test Book\",\r\n  \"description\": \"Temporary book for delete testing\",\r\n  \"ISBN\": \"9999999999999\",\r\n  \"author\": \"{{authorId}}\",\r\n  \"category\": \"Testing\",\r\n  \"totalCopies\": 1,\r\n  \"availableCopies\": 1\r\n}",
+              "raw": "{\n  \"title\": \"A Game of Thrones\",\n  \"description\": \"The first novel in the epic fantasy series A Song of Ice and Fire.\",\n  \"ISBN\": \"{{demoISBN}}\",\n  \"author\": \"{{authorId}}\",\n  \"category\": \"Fantasy\",\n  \"totalCopies\": 3,\n  \"availableCopies\": 3\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -830,58 +808,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"totalCopies\": 5,\r\n  \"availableCopies\": 5\r\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/books/{{bookId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "books",
-                "{{bookId}}"
-              ]
-            }
-          },
-          "response": [],
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Delete Book",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{adminToken}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "DELETE",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "",
+              "raw": "{\n  \"totalCopies\": 5,\n  \"availableCopies\": 5\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -931,8 +858,17 @@
                   "pm.test(\"Status code is 201\", function () {",
                   "  pm.response.to.have.status(201);",
                   "});",
+                  "",
                   "const json = pm.response.json();",
-                  "if (json.data?._id) pm.collectionVariables.set(\"borrowId\", json.data._id);"
+                  "",
+                  "pm.test(\"Borrow record returned\", function () {",
+                  "  pm.expect(json.data).to.have.property(\"_id\");",
+                  "  pm.expect(json.data).to.have.property(\"status\");",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201 && json.data?._id) {",
+                  "  pm.environment.set(\"borrowId\", json.data._id);",
+                  "}"
                 ]
               }
             }
@@ -1190,40 +1126,189 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Cleanup",
+      "item": [
+        {
+          "name": "Delete Book",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/books/{{bookId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "books",
+                "{{bookId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Author",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/authors/{{authorId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "authors",
+                "{{authorId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{memberToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "  pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ],
-  "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:3000"
-    },
-    {
-      "key": "adminToken",
-      "value": ""
-    },
-    {
-      "key": "librarianToken",
-      "value": ""
-    },
-    {
-      "key": "memberToken",
-      "value": ""
-    },
-    {
-      "key": "userId",
-      "value": ""
-    },
-    {
-      "key": "authorId",
-      "value": ""
-    },
-    {
-      "key": "bookId",
-      "value": ""
-    },
-    {
-      "key": "borrowId",
-      "value": ""
-    }
-  ]
+  "variable": []
 }
