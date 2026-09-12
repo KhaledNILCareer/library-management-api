@@ -43,6 +43,7 @@ router.delete(
 router.post(
     "/:id/borrow",
     authenticate,
+    authorizeRole("member"),
     borrowBook
 );
 

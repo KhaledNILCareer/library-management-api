@@ -47,12 +47,6 @@ export const getMyBorrows = async (req, res, next) => {
 
 export const getBorrows = async (req, res, next) => {
   try {
-    if (req.user.role === "member") {
-      return res.status(403).json({
-        message: "Only admin and librarian can view borrowing records",
-      });
-    }
-
     const borrows = await borrowService.getAllBorrows(req.query);
 
     res.status(200).json({
@@ -66,12 +60,6 @@ export const getBorrows = async (req, res, next) => {
 
 export const getBorrowById = async (req, res, next) => {
   try {
-    if (req.user.role === "member") {
-      return res.status(403).json({
-        message: "Only admin and librarian can view borrowing records",
-      });
-    }
-
     const borrow = await borrowService.getBorrowById(
       req.params.id,
       req.user
