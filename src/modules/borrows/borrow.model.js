@@ -39,6 +39,30 @@ const borrowSchema = new mongoose.Schema(
 
 borrowSchema.index({ book: 1, user: 1, status: 1 });
 
+borrowSchema.pre("validate", function () {
+    if (
+        this.borrowDate &&
+        this.dueDate &&
+        this.dueDate <= this.borrowDate
+    ) {
+        this.invalidate(
+            "dueDate",
+            "Due date must be after borrow date"
+        );
+    }
+
+    if (
+        this.returnDate &&
+        this.borrowDate &&
+        this.returnDate < this.borrowDate
+    ) {
+        this.invalidate(
+            "returnDate",
+            "Return date cannot be before borrow date"
+        );
+    }
+});
+
 const Borrow = mongoose.model("Borrow", borrowSchema);
 
 export default Borrow;

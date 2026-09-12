@@ -8,6 +8,8 @@ import {
     deleteBook
 } from "./book.controller.js";
 
+import { borrowBook } from "../borrows/borrow.controller.js";
+
 import { authenticate } from "../../middlewares/auth.middleware.js";
 import { authorizeRole } from "../../middlewares/role.middleware.js";
 
@@ -36,6 +38,12 @@ router.delete(
     authenticate,
     authorizeRole("admin", "librarian"),
     deleteBook
+);
+
+router.post(
+    "/:id/borrow",
+    authenticate,
+    borrowBook
 );
 
 export default router;

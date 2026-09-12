@@ -2,11 +2,10 @@ import * as borrowService from "./borrow.service.js";
 
 export const borrowBook = async (req, res, next) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
-    const borrow = await borrowService.borrowBook(req.user.id, req.params.id);
+    const borrow = await borrowService.borrowBook(
+      req.user.id,
+      req.params.id
+    );
 
     res.status(201).json({
       message: "Book borrowed successfully",
@@ -19,11 +18,10 @@ export const borrowBook = async (req, res, next) => {
 
 export const returnBook = async (req, res, next) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
-    const borrow = await borrowService.returnBorrow(req.params.id, req.user);
+    const borrow = await borrowService.returnBorrow(
+      req.params.id,
+      req.user
+    );
 
     res.status(200).json({
       message: "Book returned successfully",
@@ -36,10 +34,6 @@ export const returnBook = async (req, res, next) => {
 
 export const getMyBorrows = async (req, res, next) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
     const borrows = await borrowService.getMyBorrows(req.user.id);
 
     res.status(200).json({
@@ -53,10 +47,6 @@ export const getMyBorrows = async (req, res, next) => {
 
 export const getBorrows = async (req, res, next) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
     if (req.user.role === "member") {
       return res.status(403).json({
         message: "Only admin and librarian can view borrowing records",
@@ -76,17 +66,16 @@ export const getBorrows = async (req, res, next) => {
 
 export const getBorrowById = async (req, res, next) => {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-
     if (req.user.role === "member") {
       return res.status(403).json({
         message: "Only admin and librarian can view borrowing records",
       });
     }
 
-    const borrow = await borrowService.getBorrowById(req.params.id, req.user);
+    const borrow = await borrowService.getBorrowById(
+      req.params.id,
+      req.user
+    );
 
     res.status(200).json({
       message: "Borrow record retrieved successfully",
