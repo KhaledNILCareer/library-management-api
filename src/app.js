@@ -8,6 +8,7 @@ import authorRoutes from "./modules/authors/author.routes.js";
 import bookRoutes from "./modules/books/book.routes.js";
 import borrowRoutes from "./modules/borrows/borrow.routes.js";
 import aiRoutes from "./modules/ai/ai.routes.js";
+import userRoutes from "./modules/users/user.routes.js";
 
 import { notFound } from "./middlewares/notFound.middleware.js";
 import { errorHandler } from "./middlewares/error.middleware.js";
@@ -24,6 +25,7 @@ app.get("/", (req, res) => {
 
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/authors", authorRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/borrows", borrowRoutes);
