@@ -8,16 +8,34 @@ import {
     deleteBook
 } from "./book.controller.js";
 
+import { authenticate } from "../../middlewares/auth.middleware.js";
+import { authorizeRole } from "../../middlewares/role.middleware.js";
+
 const router = Router();
 
-router.post("/", createBook);
+router.post(
+    "/",
+    authenticate,
+    authorizeRole("admin", "librarian"),
+    createBook
+);
 
 router.get("/", getBooks);
 
 router.get("/:id", getBookById);
 
-router.patch("/:id", updateBook);
+router.patch(
+    "/:id",
+    authenticate,
+    authorizeRole("admin", "librarian"),
+    updateBook
+);
 
-router.delete("/:id", deleteBook);
+router.delete(
+    "/:id",
+    authenticate,
+    authorizeRole("admin", "librarian"),
+    deleteBook
+);
 
 export default router;

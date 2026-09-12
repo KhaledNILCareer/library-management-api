@@ -10,33 +10,34 @@ const validateObjectId = (id) => {
     return mongoose.Types.ObjectId.isValid(id);
 };
 
-export const createBook = async(req, res, next) => {
+export const createBook = async (req, res, next) => {
     try {
         const {
             title,
+            description,
+            ISBN,
             author,
-            isbn,
-            publishedYear,
+            category,
             totalCopies,
             availableCopies
         } = req.body;
 
-        if (!title ||
+        if (
+            !title ||
+            !description ||
+            !ISBN ||
             !author ||
-            !isbn ||
-            publishedYear === undefined ||
+            !category ||
             totalCopies === undefined ||
             availableCopies === undefined
         ) {
             return res.status(400).json({
-                success: false,
                 message: "All book fields are required"
             });
         }
 
         if (!validateObjectId(author)) {
             return res.status(400).json({
-                success: false,
                 message: "Invalid author ID"
             });
         }
@@ -45,44 +46,59 @@ export const createBook = async(req, res, next) => {
 
         if (!existingAuthor) {
             return res.status(404).json({
-                success: false,
                 message: "Author not found"
             });
         }
 
-        const normalizedIsbn = normalizeIsbn(isbn);
+        const normalizedISBN = normalizeIsbn(ISBN);
 
         const existingBook = await Book.findOne({
-            isbn: normalizedIsbn
+            ISBN: normalizedISBN
         });
 
         if (existingBook) {
             return res.status(409).json({
-                success: false,
                 message: "A book with this ISBN already exists"
+            });
+        }
+
+        if (
+            !Number.isInteger(totalCopies) ||
+            !Number.isInteger(availableCopies)
+        ) {
+            return res.status(400).json({
+                message: "Book copy counts must be integers"
+            });
+        }
+
+        if (totalCopies < 0 || availableCopies < 0) {
+            return res.status(400).json({
+                message: "Book copy counts cannot be negative"
             });
         }
 
         if (availableCopies > totalCopies) {
             return res.status(400).json({
-                success: false,
                 message: "Available copies cannot exceed total copies"
             });
         }
 
         const book = await Book.create({
             title,
+            description,
+            ISBN: normalizedISBN,
             author,
-            isbn: normalizedIsbn,
-            publishedYear,
+            category,
             totalCopies,
             availableCopies
         });
 
-        const populatedBook = await book.populate("author", "name biography");
+        const populatedBook = await book.populate(
+            "author",
+            "name biography"
+        );
 
         return res.status(201).json({
-            success: true,
             message: "Book created successfully",
             data: populatedBook
         });
@@ -95,14 +111,43 @@ export const getBooks = async(req, res, next) => {
     try {
         const {
             page = 1,
-                limit = 10,
-                search,
-                author,
-                available
+            limit = 10,
+            search,
+            author,
+            available
         } = req.query;
 
-        const currentPage = Math.max(Number(page), 1);
-        const currentLimit = Math.min(Math.max(Number(limit), 1), 100);
+        const parsedPage = Number(page);
+        const parsedLimit = Number(limit);
+
+        if (!Number.isInteger(parsedPage) || parsedPage < 1) {
+            return res.status(400).json({
+                message: "Page must be a positive integer"
+            });
+        }
+
+        if (
+            !Number.isInteger(parsedLimit) ||
+            parsedLimit < 1 ||
+            parsedLimit > 100
+        ) {
+            return res.status(400).json({
+                message: "Limit must be an integer between 1 and 100"
+            });
+        }
+
+        if (
+            available !== undefined &&
+            available !== "true" &&
+            available !== "false"
+        ) {
+            return res.status(400).json({
+                message: "Available must be true or false"
+            });
+        }
+
+        const currentPage = parsedPage;
+        const currentLimit = parsedLimit;
 
         const filter = {};
 
@@ -114,7 +159,7 @@ export const getBooks = async(req, res, next) => {
                     }
                 },
                 {
-                    isbn: {
+                    ISBN: {
                         $regex: normalizeIsbn(search),
                         $options: "i"
                     }
@@ -224,9 +269,10 @@ export const updateBook = async(req, res, next) => {
 
         const allowedFields = [
             "title",
+            "description",
+            "ISBN",
             "author",
-            "isbn",
-            "publishedYear",
+            "category",
             "totalCopies",
             "availableCopies"
         ];
@@ -257,11 +303,11 @@ export const updateBook = async(req, res, next) => {
             }
         }
 
-        if (updates.isbn) {
-            updates.isbn = normalizeIsbn(updates.isbn);
+        if (updates.ISBN) {
+            updates.ISBN = normalizeIsbn(updates.ISBN);
 
             const isbnExists = await Book.findOne({
-                isbn: updates.isbn,
+                ISBN: updates.ISBN,
                 _id: {
                     $ne: id
                 }
@@ -276,10 +322,14 @@ export const updateBook = async(req, res, next) => {
         }
 
         const nextTotalCopies =
-            updates.totalCopies ? updates.totalCopies : book.totalCopies;
+            updates.totalCopies !== undefined
+                ? updates.totalCopies
+                : book.totalCopies;
 
         const nextAvailableCopies =
-            updates.availableCopies ? updates.availableCopies : book.availableCopies;
+            updates.availableCopies !== undefined
+                ? updates.availableCopies
+                : book.availableCopies;
 
         if (nextAvailableCopies > nextTotalCopies) {
             return res.status(400).json({
