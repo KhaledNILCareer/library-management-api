@@ -1,0 +1,93 @@
+/api/borrows/my:
+  get:
+    tags: [Borrowing]
+    summary: Get current member's borrowing history
+    description: Member only.
+    security:
+      - bearerAuth: []
+    responses:
+      '200':
+        description: Borrowing history retrieved successfully
+      '401':
+        description: Authentication required
+      '403':
+        description: Member role required
+
+/api/borrows:
+  get:
+    tags: [Borrowing]
+    summary: Get all borrowing records
+    description: Admin or Librarian only.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum: [Borrowed, Returned, Overdue]
+      - in: query
+        name: userId
+        schema: { type: string }
+      - in: query
+        name: bookId
+        schema: { type: string }
+    responses:
+      '200':
+        description: Borrowing records retrieved successfully
+      '400':
+        description: Invalid filter values
+      '401':
+        description: Authentication required
+      '403':
+        description: Admin or Librarian role required
+
+/api/borrows/{id}:
+  get:
+    tags: [Borrowing]
+    summary: Get a borrowing record by ID
+    description: Admin or Librarian only.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Borrow record retrieved successfully
+      '400':
+        description: Invalid borrow ID
+      '401':
+        description: Authentication required
+      '403':
+        description: Admin or Librarian role required
+      '404':
+        description: Borrow record not found
+
+/api/borrows/{id}/return:
+  post:
+    tags: [Borrowing]
+    summary: Return a borrowed book
+    description: Member or Librarian. Member ownership is enforced by service logic.
+    security:
+      - bearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: { type: string }
+    responses:
+      '200':
+        description: Book returned successfully
+      '400':
+        description: Invalid borrow ID
+      '401':
+        description: Authentication required
+      '403':
+        description: Not allowed to return this borrowing
+      '404':
+        description: Borrow record not found
+      '409':
+        description: Borrowing was already returned

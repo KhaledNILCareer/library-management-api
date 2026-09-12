@@ -1,0 +1,77 @@
+/api/ai/summarize-book:
+  post:
+    tags:
+      - AI
+    summary: Summarize a book using Gemini AI
+    description: Generate a short and clear summary from a book title and description.
+
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - title
+              - description
+            properties:
+              title:
+                type: string
+                example: "1984"
+              description:
+                type: string
+                maxLength: 5000
+                example: "A dystopian novel about a totalitarian society where the government controls information and individual thought."
+
+    responses:
+      "200":
+        description: Book summarized successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: Book summarized successfully
+                data:
+                  type: object
+                  properties:
+                    summary:
+                      type: string
+                      example: A dystopian novel about a totalitarian state that controls truth, history, and individual freedom.
+
+      "400":
+        description: Invalid or missing input
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+      "500":
+        description: AI service configuration error
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+      "502":
+        description: AI service failed or returned an invalid response
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+      "503":
+        description: AI service is temporarily unavailable or rate limited
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
+
+      "504":
+        description: AI service request timed out
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ErrorResponse"
